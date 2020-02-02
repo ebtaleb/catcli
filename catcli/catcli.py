@@ -12,6 +12,7 @@ import sys
 import os
 import datetime
 from docopt import docopt
+from iterfzf import iterfzf
 
 # local imports
 from . import __version__ as VERSION
@@ -44,6 +45,7 @@ Usage:
     {1} tree   [--catalog=<path>] [-aVS] [<path>]
     {1} rename [--catalog=<path>] [-fV] <storage> <name>
     {1} edit   [--catalog=<path>] [-fV] <storage>
+    {1} fzf     [--catalog=<path>] [-arVS] [<path>]
     {1} graph  [--catalog=<path>] [-V] [<path>]
     {1} help
     {1} --help
@@ -216,6 +218,25 @@ def cmd_edit(args, noder, catalog, top):
     return top
 
 
+def cmd_fzf(args, noder, top):
+    path = args['<path>']
+    if not path:
+        path = SEPARATOR
+    if not path.startswith(SEPARATOR):
+        path = SEPARATOR + path
+    pre = '{}{}'.format(SEPARATOR, noder.TOPNAME)
+    if not path.startswith(pre):
+        path = pre + path
+    if not path.endswith(SEPARATOR):
+        path += SEPARATOR
+    if not path.endswith(WILD):
+        path += WILD
+    found = noder.walk(top, path, rec=args['--recursive'])
+    if not found:
+        Logger.err('\"{}\": nothing found'.format(args['<path>']))
+    return found
+
+
 def banner():
     Logger.out(BANNER)
     Logger.out("")
@@ -268,6 +289,13 @@ def main():
         cmd_rename(args, noder, catalog, top)
     elif args['edit']:
         cmd_edit(args, noder, catalog, top)
+    elif args['fzf']:
+        r = cmd_fzf(args, noder, top)
+        # iterfzf(r[0].iter_path_reverse())
+        iterfzf(map(lambda x: x.relpath, r[0].leaves), exact=True, multi=True)
+        # import IPython; IPython.embed()
+        # import sys; sys.exit(1)
+        # iterfzf(map(lambda x: x.name, r[0].leaves))
 
     return True
 
