@@ -292,7 +292,9 @@ def main():
     elif args['fzf']:
         r = cmd_fzf(args, noder, top)
         # iterfzf(r[0].iter_path_reverse())
-        iterfzf(map(lambda x: x.relpath, r[0].leaves), exact=True, multi=True)
+        for file in iterfzf(map(lambda x: x.relpath, r[0].leaves), exact=True,
+                            multi=True):
+            print(file)
         # import IPython; IPython.embed()
         # import sys; sys.exit(1)
         # iterfzf(map(lambda x: x.name, r[0].leaves))
